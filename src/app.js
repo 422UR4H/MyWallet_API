@@ -5,8 +5,6 @@ import dotenv from "dotenv";
 import { getUser } from "./controllers/user.controller.js";
 import { signup, signin, signout } from "./controllers/auth.controller.js";
 import { postTransaction, getTransactions } from "./controllers/transaction.controller.js";
-import Joi from "@hapi/joi";
-import { stripHtml } from "string-strip-html";
 
 
 const app = express();
@@ -15,37 +13,19 @@ app.use(json());
 dotenv.config();
 
 
-const mongoClient = new MongoClient(process.env.DATABASE_URL);
-try {
-    await mongoClient.connect();
-} catch (err) {
-    console.error(err.message);
-}
-export const db = mongoClient.db();
-
-
-export const userSchema = Joi.object({
-    name: Joi.string().custom(value => stripHtml(value)).trim().required(),
-    email: Joi.string().custom(value => stripHtml(value)).trim().email().required(),
-    password: Joi.string().custom(value => stripHtml(value)).trim().min(3).required() // trim?
-});
-
-export const loginSchema = Joi.object({
-    email: Joi.string().custom(value => stripHtml(value)).trim().required(),
-    password: Joi.string().custom(value => stripHtml(value)).trim().min(3).required() // trim?
-});
-
-export const transactionSchema = Joi.object({
-    type: Joi.string().custom(v => stripHtml(v)).trim().valid("entrada", "saida").required(),
-    text: Joi.string().custom(v => stripHtml(v)).trim().required(),
-    amount: Joi.number().required()
-});
+export const mongoClient = new MongoClient(process.env.DATABASE_URL);
+// try {
+//     await mongoClient.connect();
+// } catch (err) {
+//     console.error(err.message);
+// }
+// export const db = mongoClient.db();
 
 
 app.post("/sign-up", signup);
 app.post("/sign-in", signin);
 app.post("/sign-out", signout);
-app.post("/transaction:type", postTransaction);
+app.post("/transaction/:type", postTransaction);
 app.get("/transactions", getTransactions);
 app.get("/user", getUser);
 

@@ -1,10 +1,13 @@
-import { db } from "../app.js";
+import { mongoClient } from "../app.js";
 
 export async function getUser(req, res) {
     const token = req.headers.authorization?.replace("Bearer ", "");
     if (!token) return res.sendStatus(401);
 
     try {
+        await mongoClient.connect();
+        const db = mongoClient.db();
+
         const session = await db.collection("sessions").findOne({ token });
         if (!session) return res.sendStatus(401);
 
@@ -13,5 +16,7 @@ export async function getUser(req, res) {
         res.send(user);
     } catch (err) {
         res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
     }
 }

@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
-import { db, transactionSchema } from "../app.js";
+import { mongoClient } from "../app.js";
+import { transactionSchema } from "../schemas.js";
 
 
 export async function postTransaction(req, res) {
@@ -12,20 +13,25 @@ export async function postTransaction(req, res) {
     if (!token) return res.sendStatus(401);
 
     try {
+        await mongoClient.connect();
+        const db = mongoClient.db();
+
         const session = await db.collection("sessions").findOne({ token });
         if (!session) return res.sendStatus(401);
 
         const newTransaction = {
             type: value.type,
             text: value.text.result,
-            amount: value.amount.result,
+            amount: value.amount,
             userId: session.userId,
-            time: dayjs.locale("pt-br").format("DD/MM")
+            time: dayjs().locale("pt-br").format("DD/MM")
         }
         await db.collection("transactions").insertOne(newTransaction);
         res.sendStatus(200);
     } catch (err) {
         res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
     }
 }
 
@@ -34,6 +40,9 @@ export async function getTransactions(req, res) {
     if (!token) return res.sendStatus(401);
 
     try {
+        await mongoClient.connect();
+        const db = mongoClient.db();
+
         const session = await db.collection("sessions").findOne({ token });
         if (!session) return res.sendStatus(401);
 
@@ -45,5 +54,7 @@ export async function getTransactions(req, res) {
 
     } catch (err) {
         res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
     }
 }

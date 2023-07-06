@@ -1,4 +1,5 @@
-import { db, loginSchema, userSchema } from "../app.js";
+import { loginSchema, userSchema } from "../schemas.js";
+import { mongoClient } from "../app.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 
@@ -12,13 +13,18 @@ export async function signup(req, res) {
     const user = { name: value.name.result, email: value.email.result, password };
 
     try {
-        if (await db.collection("users").findOne({ email })) {
+        await mongoClient.connect();
+        const users = mongoClient.db().collection("users");
+
+        if (await users.findOne({ email: user.email })) {
             return res.status(409).send("E-mail já cadastrado");
         }
-        await db.collection("users").insertOne(user);
+        await users.insertOne(user);
         res.sendStatus(201);
     } catch (err) {
         res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
     }
 }
 
@@ -31,6 +37,9 @@ export async function signin(req, res) {
     const password = value.password.result;
     
     try {
+        await mongoClient.connect();
+        const db = mongoClient.db();
+
         const user = await db.collection("users").findOne({ email });
         if (!user) return res.status(404).send("E-mail não cadastrado");
         if (!bcrypt.compareSync(password, user.password)) return res.sendStatus(401);
@@ -40,6 +49,8 @@ export async function signin(req, res) {
         res.send(token);
     } catch (err) {
         res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
     }
 }
 
@@ -48,10 +59,15 @@ export async function signout(req, res) {
     if (!token) return res.sendStatus(401);
 
     try {
+        await mongoClient.connect();
+        const db = mongoClient.db();
+
         const result = await db.collection("sessions").deleteOne({ token });
         if (result.deletedCount === 0) return res.sendStatus(404);
         res.sendStatus(204);
     } catch (err) {
         res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
     }
 }
