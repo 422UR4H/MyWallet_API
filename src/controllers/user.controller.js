@@ -1,4 +1,4 @@
-import { mongoClient } from "../app.js";
+import { mongoClient } from "../database/database.connection.js";
 
 export async function getUser(req, res) {
     const token = req.headers.authorization?.replace("Bearer ", "");

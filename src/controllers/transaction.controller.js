@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { mongoClient } from "../app.js";
+import { mongoClient } from "../database/database.connection.js";
 import { transactionSchema } from "../schemas.js";
 
 
