@@ -42,3 +42,16 @@ export async function signin(req, res) {
         res.status(500).send(err.message);
     }
 }
+
+export async function signout(req, res) {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const result = await db.collection("sessions").deleteOne({ token });
+        if (result.deletedCount === 0) return res.sendStatus(404);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}

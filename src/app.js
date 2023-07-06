@@ -3,7 +3,7 @@ import { MongoClient } from "mongodb";
 import cors from "cors";
 import dotenv from "dotenv";
 import { getUser } from "./controllers/user.controller.js";
-import { signup, signin } from "./controllers/auth.controller.js";
+import { signup, signin, signout } from "./controllers/auth.controller.js";
 import { postTransaction, getTransactions } from "./controllers/transaction.controller.js";
 import Joi from "@hapi/joi";
 import { stripHtml } from "string-strip-html";
@@ -44,6 +44,7 @@ export const transactionSchema = Joi.object({
 
 app.post("/sign-up", signup);
 app.post("/sign-in", signin);
+app.post("/sign-out", signout);
 app.post("/transaction:type", postTransaction);
 app.get("/transactions", getTransactions);
 app.get("/user", getUser);
