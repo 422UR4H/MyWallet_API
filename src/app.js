@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { signup, signin } from "./controllers/auth.controller.js";
 import Joi from "@hapi/joi";
+import { stripHtml } from "string-strip-html";
 
 
 const app = express();
@@ -24,6 +25,11 @@ export const db = mongoClient.db();
 export const userSchema = Joi.object({
     name: Joi.string().custom(value => stripHtml(value)).trim().required(),
     email: Joi.string().custom(value => stripHtml(value)).trim().email().required(),
+    password: Joi.string().custom(value => stripHtml(value)).trim().min(3).required() // trim?
+});
+
+export const loginSchema = Joi.object({
+    email: Joi.string().custom(value => stripHtml(value)).trim().required(),
     password: Joi.string().custom(value => stripHtml(value)).trim().min(3).required() // trim?
 });
 
