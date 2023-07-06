@@ -3,6 +3,7 @@ import { MongoClient } from "mongodb";
 import cors from "cors";
 import dotenv from "dotenv";
 import { signup, signin } from "./controllers/auth.controller.js";
+import { postTransaction, getTransactions } from "./controllers/transaction.controller.js";
 import Joi from "@hapi/joi";
 import { stripHtml } from "string-strip-html";
 
@@ -33,9 +34,17 @@ export const loginSchema = Joi.object({
     password: Joi.string().custom(value => stripHtml(value)).trim().min(3).required() // trim?
 });
 
+export const transactionSchema = Joi.object({
+    type: Joi.string().custom(v => stripHtml(v)).trim().valid("entrada", "saida").required(),
+    text: Joi.string().custom(v => stripHtml(v)).trim().required(),
+    amount: Joi.number().required()
+});
+
 
 app.post("/sign-up", signup);
 app.post("/sign-in", signin);
+app.post("/transaction:type", postTransaction);
+app.get("/transactions", getTransactions);
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`server is running on port ${PORT}`));

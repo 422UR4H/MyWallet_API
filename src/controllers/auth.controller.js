@@ -1,7 +1,5 @@
 import { db, loginSchema, userSchema } from "../app.js";
-import { ObjectId } from "mongodb";
 import { v4 as uuid } from "uuid";
-import { stripHtml } from "string-strip-html";
 import bcrypt from "bcrypt";
 
 
