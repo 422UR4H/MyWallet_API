@@ -1,6 +1,5 @@
 import express, { json } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import { getUser } from "./controllers/user.controller.js";
 import { signup, signin, signout } from "./controllers/auth.controller.js";
 import { postTransaction, getTransactions } from "./controllers/transaction.controller.js";
@@ -8,7 +7,6 @@ import { postTransaction, getTransactions } from "./controllers/transaction.cont
 const app = express();
 app.use(cors());
 app.use(json());
-dotenv.config();
 
 app.post("/sign-up", signup);
 app.post("/sign-in", signin);

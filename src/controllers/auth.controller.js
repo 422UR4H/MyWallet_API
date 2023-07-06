@@ -1,4 +1,4 @@
-import { loginSchema, userSchema } from "../schemas.js";
+import { loginSchema, userSchema } from "../schemas/schemas.user.js";
 import { mongoClient } from "../database/database.connection.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
