@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { mongoClient } from "../database/database.connection.js";
-import { transactionSchema } from "../schemas/schemas.user.js";
+import { transactionSchema } from "../schemas/schemas.transaction.js";
 
 
 export async function postTransaction(req, res) {
