@@ -30,5 +30,20 @@ export async function postTransaction(req, res) {
 }
 
 export async function getTransactions(req, res) {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.sendStatus(401);
 
+    try {
+        const session = await db.collection("sessions").findOne({ token });
+        if (!session) return res.sendStatus(401);
+
+        res.send(await db
+            .collection("transactions")
+            .find({ userId: session.userId })
+            .sort({ _id: -1 })
+            .toArray());
+
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 }
