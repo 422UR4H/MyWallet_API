@@ -1,17 +1,10 @@
 import { mongoClient } from "../database/database.connection.js";
 
 export async function getUser(req, res) {
-    const token = req.headers.authorization?.replace("Bearer ", "");
-    if (!token) return res.sendStatus(401);
-
     try {
-        await mongoClient.connect();
-        const db = mongoClient.db();
+        const dbUsers = (await mongoClient.connect()).db().collection("users");
+        const user = await dbUsers.findOne({ _id: res.locals.session.userId });
 
-        const session = await db.collection("sessions").findOne({ token });
-        if (!session) return res.sendStatus(401);
-
-        const user = await db.collection("users").findOne({ _id: session.userId });
         delete user.password;
         res.send(user);
     } catch (err) {

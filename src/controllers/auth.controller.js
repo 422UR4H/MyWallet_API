@@ -1,26 +1,21 @@
 import { mongoClient } from "../database/database.connection.js";
-import { loginSchema } from "../schemas/login.schemas.js";
-import { userSchema } from "../schemas/user.schemas.js";
 import { v4 as uuid } from "uuid";
 import bcrypt from "bcrypt";
 
 
 export async function signup(req, res) {
-    const { error, value } = userSchema.validate(req.body, { abortEarly: false });
-
-    if (error) return res.status(422).send(error.details.map(d => d.message));
-
-    const password = bcrypt.hashSync(value.password.result, 10);
-    const user = { name: value.name.result, email: value.email.result, password };
+    const { bodyValues } = res.locals;
+    const name = bodyValues.name.result;
+    const email = bodyValues.email.result;
+    const password = bcrypt.hashSync(bodyValues.password.result, 10);
 
     try {
-        await mongoClient.connect();
-        const users = mongoClient.db().collection("users");
+        const dbUsers = (await mongoClient.connect()).db().collection("users");
 
-        if (await users.findOne({ email: user.email })) {
+        if (await dbUsers.findOne({ email })) {
             return res.status(409).send("E-mail já cadastrado");
         }
-        await users.insertOne(user);
+        await dbUsers.insertOne({ name, email, password });
         res.sendStatus(201);
     } catch (err) {
         res.status(500).send(err.message);
@@ -30,22 +25,19 @@ export async function signup(req, res) {
 }
 
 export async function signin(req, res) {
-    const { error, value } = loginSchema.validate(req.body, { abortEarly: false });
-    
-    if (error) return res.status(422).send(error.details.map(d => d.message));
+    const { bodyValues } = res.locals;
+    const email = bodyValues.email.result;
+    const password = bodyValues.password.result;
 
-    const email = value.email.result;
-    const password = value.password.result;
-    
     try {
-        await mongoClient.connect();
-        const db = mongoClient.db();
-
+        const db = (await mongoClient.connect()).db();
         const user = await db.collection("users").findOne({ email });
+
         if (!user) return res.status(404).send("E-mail não cadastrado");
         if (!bcrypt.compareSync(password, user.password)) return res.sendStatus(401);
 
         const token = uuid();
+
         await db.collection("sessions").insertOne({ token, userId: user._id });
         res.send(token);
     } catch (err) {
@@ -56,14 +48,10 @@ export async function signin(req, res) {
 }
 
 export async function signout(req, res) {
-    const token = req.headers.authorization?.replace("Bearer ", "");
-    if (!token) return res.sendStatus(401);
-
     try {
-        await mongoClient.connect();
-        const db = mongoClient.db();
+        const dbSessions = (await mongoClient.connect()).db().collection("sessions");
+        const result = await dbSessions.deleteOne({ token: res.locals.session.token });
 
-        const result = await db.collection("sessions").deleteOne({ token });
         if (result.deletedCount === 0) return res.sendStatus(404);
         res.sendStatus(204);
     } catch (err) {
