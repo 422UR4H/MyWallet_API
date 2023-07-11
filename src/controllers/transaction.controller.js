@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { mongoClient } from "../database/database.connection.js";
+import { ObjectId } from "mongodb";
 
 
 export async function postTransaction(req, res) {
@@ -45,13 +46,16 @@ export async function deleteTransaction(req, res) {
     console.log(`userId: ${userId}, transId: ${transId}`);
 
     try {
-        const db = (await mongoClient.connect()).db();
-        const transaction = await db.collection("transactions").findOne({ _id: transId });
+        const dbTrans = (await mongoClient.connect()).db().collection("transactions");
+        const transaction = await dbTrans.findOne({ _id: new ObjectId(transId) });
 
         if (!transaction) return res.sendStatus(404);
-        if (transaction.userId !== userId) return res.sendStatus(401);
+        if (transaction.userId.toString() !== userId.toString()) {
+            return res.sendStatus(401)
+        };
+        const result = await dbTrans.deleteOne({ _id: new ObjectId(transId) });
+        console.log("aquiii")
 
-        await db.collection("transactions").deleteOne({ _id: transId });
         res.sendStatus(204);
     } catch (err) {
         res.status(500).send(err.message);
