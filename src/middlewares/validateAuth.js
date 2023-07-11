@@ -2,6 +2,7 @@ import { mongoClient } from "../database/database.connection.js";
 
 export default async function validateAuth(req, res, next) {
     const token = req.headers.authorization?.replace("Bearer ", "");
+    
     if (!token) return res.sendStatus(401);
 
     try {
