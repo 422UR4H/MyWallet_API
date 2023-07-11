@@ -43,18 +43,22 @@ export async function getTransactions(req, res) {
 export async function deleteTransaction(req, res) {
     const { userId } = res.locals.session;
     const transId = res.locals.paramId;
-    console.log(`userId: ${userId}, transId: ${transId}`);
 
     try {
-        const dbTrans = (await mongoClient.connect()).db().collection("transactions");
+        const client = await mongoClient.connect();
+        const dbTrans = client.db().collection("transactions");
         const transaction = await dbTrans.findOne({ _id: new ObjectId(transId) });
 
         if (!transaction) return res.sendStatus(404);
         if (transaction.userId.toString() !== userId.toString()) {
             return res.sendStatus(401)
         };
+        await mongoClient.connect();
+
         const result = await dbTrans.deleteOne({ _id: new ObjectId(transId) });
-        console.log("aquiii")
+        if (result.deletedCount === 0) {
+            return res.status(404).send("Transação encontrada, mas não deletada");
+        }
 
         res.sendStatus(204);
     } catch (err) {
