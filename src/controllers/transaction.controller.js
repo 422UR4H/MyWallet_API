@@ -38,3 +38,40 @@ export async function getTransactions(req, res) {
         await mongoClient.close();
     }
 }
+
+export async function deleteTransaction(req, res) {
+    const { userId } = res.locals.session;
+    const transId = res.locals.paramId;
+    console.log(`userId: ${userId}, transId: ${transId}`);
+
+    try {
+        const db = (await mongoClient.connect()).db();
+        const transaction = await db.collection("transactions").findOne({ _id: transId });
+
+        if (!transaction) return res.sendStatus(404);
+        if (transaction.userId !== userId) return res.sendStatus(401);
+
+        await db.collection("transactions").deleteOne({ _id: transId });
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).send(err.message);
+    } finally {
+        await mongoClient.close();
+    }
+}
+
+app.delete("/messages/:id", async (req, res) => {
+    const name = req.headers.user;
+    const id = stripHtml(req.params.id).result;
+
+    try {
+        const message = await db.collection("messages").findOne({ _id: new ObjectId(id) });
+        if (!message) return res.sendStatus(404);
+        if (name !== message.from) return res.sendStatus(401);
+
+        await db.collection("messages").deleteOne({ _id: new ObjectId(id) });
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});

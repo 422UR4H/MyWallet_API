@@ -34,8 +34,9 @@ export async function signin(req, res) {
         const user = await db.collection("users").findOne({ email });
 
         if (!user) return res.status(404).send("E-mail não cadastrado");
-        if (!bcrypt.compareSync(password, user.password)) return res.sendStatus(401);
-
+        if (!bcrypt.compareSync(password, user.password)) {
+            return res.status(401).send("Senha incorreta");
+        }
         const token = uuid();
 
         await db.collection("sessions").insertOne({ token, userId: user._id });
