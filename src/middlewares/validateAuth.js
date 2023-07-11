@@ -16,6 +16,6 @@ export default async function validateAuth(req, res, next) {
     } catch (err) {
         res.status(500).send(err.message);
     } finally {
-        mongoClient.close();
+        await mongoClient.close();
     }
 }
